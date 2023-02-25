@@ -8,3 +8,4 @@ Robot Arm Control Library in Python
 * Add URDF class for parsing urdf file
 * Add the Robot class for kinematics
 * Add the GUI for visualizing the urdf file
+* Add the GUI for visualizing the workspace of a robot //2023.2.24

@@ -45,7 +45,7 @@ class Robot:
             all_frame_matrix=np.dot(all_frame_matrix,frame_matrix)
             frame_history.append(all_frame_matrix)
             # print(f'frane_matrix{i}:\n{frame_matrix}')
-        print(f'All frame matrix:\n{all_frame_matrix}')
+        # print(f'All frame matrix:\n{all_frame_matrix}')
         return frame_history
             
     
