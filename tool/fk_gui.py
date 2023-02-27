@@ -1,5 +1,5 @@
-from arm_control.myfk import Robot
 from arm_control.myurdf import URDF
+from arm_control.myfk import Robot
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
