@@ -12,3 +12,4 @@ Robot Arm Control Library in Python
 * Fix the package include error //2023.2.27
 * Add doc folder for documentation and video demo
 * Update file structure and name
+* Add symbolic kinematics
