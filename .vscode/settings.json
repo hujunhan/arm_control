@@ -1,8 +1,8 @@
 {
     "terminal.integrated.env.windows": {
-        "PYTHONPATH": "${workspaceFolder}/arm_control"
+        "PYTHONPATH": "${workspaceFolder}"
     },
     "terminal.integrated.env.osx": {
-        "PYTHONPATH": "${workspaceFolder}/arm_control"
-    }
+        "PYTHONPATH": "${workspaceFolder}"
+    },
 }
