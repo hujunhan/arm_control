@@ -3,8 +3,8 @@
 Explore the workspace of a robot
 """
 
-from arm_control.myfk import Robot
-from arm_control.myurdf import URDF
+from arm_control.robot import Robot
+from arm_control.urdf import URDF
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider

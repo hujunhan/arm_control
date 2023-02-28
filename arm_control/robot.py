@@ -1,4 +1,4 @@
-from arm_control.myurdf import URDF
+from arm_control.urdf import URDF
 import numpy as np
 import time
 class Robot:
