@@ -53,7 +53,7 @@ class Robot:
     
     ## TODO: use sympy to calculate the jacobian matrix
     # do the same thing as forward_kine function, but use sympy to calculate the jacobian matrix
-    def forward_kine_sympy(self,theta_list):
+    def forward_kine_sympy(self):
         self.symbolic=True
         ## Calculate the transformation matrix using the origin_translation and origin_orientation and rotation
         all_frame_matrix=sym.Matrix.eye(4)
@@ -94,10 +94,47 @@ class Robot:
             # print(f'frane_matrix{i}:\n{frame_matrix}')
         # print(f'All frame matrix:\n{all_frame_matrix}')
         # all_frame_matrix = all_frame_matrix.subs(theta_dict)
+        self.fk_lambda=sym.lambdify([sym.symbols('theta0:7')],all_frame_matrix,'numpy')
         return frame_history
         
-    
+    ## calculate the jacobian matrix
+    # only care the final position of the end effector
+    def jacobian_xyz(self,T):
+        theta_list=sym.symbols('theta0:7')
+        Jac=T[:3,3].jacobian(theta_list)
+        self.Jac=sym.lambdify([theta_list],Jac,'numpy')
+        print(Jac.shape)
+        
+    ## Use the jacobian transpose method to do the inverse kinematics
+    def ik_transpose(self,current_angle,target_xyz,threshold=0.01,max_iteration=100,alpha=0.1):
+        """_summary_
 
+        Args:
+            current_angle (_type_): _description_
+            target_xyz (_type_): _description_
+            threshold (float, optional): _description_. Defaults to 0.01.
+            max_iteration (int, optional): _description_. Defaults to 100.
+            alpha (float, optional): _description_. Defaults to 0.1.
+        """
+        current_xyz=self.fk_lambda(current_angle)[:3,3]
+        
+        iteration=0
+        
+        error=np.linalg.norm(current_xyz-target_xyz)
+        
+        while error>threshold and iteration<max_iteration:
+            J=self.Jac(current_angle)
+            delta_xyz=target_xyz-current_xyz
+            
+            angle_delta=np.dot(J.T,delta_xyz)
+            current_angle+=alpha*angle_delta
+            current_xyz=self.fk_lambda(current_angle)[:3,3]
+            error=np.linalg.norm(current_xyz-target_xyz)
+            iteration+=1
+        print(f'error:{error}')
+        print(current_xyz)
+            
+    
     def rx_matrix(self,theta):
         """Rotation matrix around the X axis"""
         if self.symbolic:
@@ -148,7 +185,7 @@ class Robot:
             [x * z * (1 - c) - y * s, y * z * (1 - c) + x * s, z ** 2 + (1 - z ** 2) * c]
         ]
 if __name__ == '__main__':
-    VISUALIZE=True
+    VISUALIZE=False
     file_path='./urdf/uR10e.urdf'
     urdf=URDF()
     urdf.get_urdf_parameters(file_path)
@@ -159,18 +196,26 @@ if __name__ == '__main__':
     print(f'Number of joints: {len(urdf.joint_list)}')
     robot=Robot()
     robot.joint_list=urdf.joint_list
-    theta_list=[0,np.pi/3,0,0,0,0,0]
-    theta_dict = {sym.symbols('theta'+str(i)):theta_list[i] for i in range(len(theta_list))}
+    theta_list_current=np.asarray([0,np.pi/3,0,0,0,0,0])
+    # theta_dict = {sym.symbols('theta'+str(i)):theta_list[i] for i in range(len(theta_list))}
     
     # theta_list=[np.pi/3,np.pi/3]
     
-    frame_history= robot.forward_kine_sympy(theta_list)
-    print(frame_history[-1].subs(theta_dict)[0:3,3])
+    frame_history= robot.forward_kine_sympy()
+    robot.jacobian_xyz(frame_history[-1])
+    # print(frame_history[-1].subs(theta_dict)[0:3,3])
+    # print(f'current position: {frame_history[-1].subs(theta_dict)[0:3,3]}')
+    print(f'current position: {robot.fk_lambda(theta_list_current)[0:3,3]}')
+    theta_list_target=np.asarray([0,np.pi/3,np.pi/6,0,0,0,0])
+    # theta_dict = {sym.symbols('theta'+str(i)):theta_list[i] for i in range(len(theta_list))}
+
+    print(f'target position: {robot.fk_lambda(theta_list_target)[0:3,3]}')
+    robot.ik_transpose(theta_list_current,robot.fk_lambda(theta_list_target)[0:3,3],threshold=0.01,max_iteration=300,alpha=0.1)
     if VISUALIZE:
         import matplotlib.pyplot as plt
         ax = plt.figure().add_subplot(projection='3d')
         a=time.time()
-        frame_history= robot.forward_kine(theta_list)
+        frame_history= robot.forward_kine(theta_list_current)
         print(frame_history[-1][0:3,3])
         x=[0]
         y=[0]
