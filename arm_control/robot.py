@@ -2,6 +2,7 @@ from arm_control.urdf import URDF
 import numpy as np
 import time
 import sympy as sym
+from scipy.optimize import minimize
 class Robot:
     def __init__(self) -> None:
         self.joint_list=[]
@@ -132,9 +133,41 @@ class Robot:
             error=np.linalg.norm(current_xyz-target_xyz)
             iteration+=1
         print(f'error:{error}')
+        print(f'joint angle:{current_angle}')
         print(current_xyz)
-            
     
+    ## A function use scipy.optimize to do the inverse kinematics
+    def ik_scipy(self,current_angle,target_xyz):
+        """ Use the scipy.optimize to do the inverse kinematics
+
+        Args:
+            current_angle (_type_): _description_
+            target_xyz (_type_): _description_
+        """
+        ## Define the joint limits
+        joint_limits=np.zeros((7,2))
+        for i in range(7):
+            joint_limits[i,0]=self.joint_list[i]['bounds'][0]
+            joint_limits[i,1]=self.joint_list[i]['bounds'][0]
+        def objective_function(joint_angle):
+            current_xyz=self.fk_lambda(joint_angle)[:3,3]
+            error=np.linalg.norm(current_xyz-target_xyz)
+            return error
+        def inequality_constraint(joint_angle):
+            ineq= np.concatenate((joint_angle[:6] -joint_limits[:6,0], joint_limits[:6, 1] - joint_angle[:6]))
+            # print(ineq.shape)
+            return ineq
+        def equality_constraint(joint_angle):
+            current_xyz=self.fk_lambda(joint_angle)[:3,3]
+            error=current_xyz-target_xyz
+            return error
+        cons = ({'type': 'eq', 'fun': equality_constraint},
+               {'type': 'ineq', 'fun': inequality_constraint})
+        result = minimize(objective_function, current_angle, method='Powell', constraints=cons)
+        ## print the result of the optimization
+        print(f'error:{result.fun}')
+        print(f'joint angle:{result.x}')
+        print(f'current_xyz:{self.fk_lambda(result.x)[:3,3]}')
     def rx_matrix(self,theta):
         """Rotation matrix around the X axis"""
         if self.symbolic:
@@ -193,6 +226,7 @@ if __name__ == '__main__':
         # print(joint['rotation'])
         # print(joint['bounds'])
         print(f'name of joint: {joint["name"]}')
+        print(f'joint bounds: {joint["bounds"]}')
     print(f'Number of joints: {len(urdf.joint_list)}')
     robot=Robot()
     robot.joint_list=urdf.joint_list
@@ -210,7 +244,8 @@ if __name__ == '__main__':
     # theta_dict = {sym.symbols('theta'+str(i)):theta_list[i] for i in range(len(theta_list))}
 
     print(f'target position: {robot.fk_lambda(theta_list_target)[0:3,3]}')
-    robot.ik_transpose(theta_list_current,robot.fk_lambda(theta_list_target)[0:3,3],threshold=0.01,max_iteration=300,alpha=0.1)
+    # robot.ik_transpose(theta_list_current,robot.fk_lambda(theta_list_target)[0:3,3],threshold=0.01,max_iteration=300,alpha=0.1)
+    robot.ik_scipy(theta_list_current,robot.fk_lambda(theta_list_target)[0:3,3])
     if VISUALIZE:
         import matplotlib.pyplot as plt
         ax = plt.figure().add_subplot(projection='3d')

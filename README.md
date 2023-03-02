@@ -14,3 +14,4 @@ Robot Arm Control Library in Python
 * Update file structure and name
 * Add symbolic kinematics
 * Add jacobian transpose method to solve inverse kinematics //2023.2.28
+* Add optimization method to solve inverse kinematics //2023.3.1

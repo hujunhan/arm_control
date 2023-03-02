@@ -18,7 +18,7 @@
     <parent link="base_link"/>
     <child link="shoulder_link"/>
     <axis xyz="0 0 1"/>
-    <limit effort="330" lower="-6.28319" upper="6.28319" velocity="3.14"/>
+    <limit effort="330" lower="-3.14159" upper="3.14159" velocity="3.14"/>
     <origin xyz="0 0 0.181" rpy="0 0 0"/>
   </joint>
   <link name="shoulder_link">
@@ -51,7 +51,7 @@
     <parent link="shoulder_link"/>
     <child link="upper_arm_link"/>
     <axis xyz="0 1 0"/>
-    <limit effort="330" lower="-6.28319" upper="6.28319" velocity="3.14"/>
+    <limit effort="330" lower="-3.14159" upper="3.14159" velocity="3.14"/>
     <origin xyz="0 0.176 0" rpy="0 1.570796 0"/>
   </joint>
   <link name="upper_arm_link">
@@ -213,7 +213,7 @@
     <parent link="forearm_link"/>
     <child link="wrist_1_link"/>
     <axis xyz="0 1 0"/>
-    <limit effort="54" lower="-6.28319" upper="6.28319" velocity="6.28"/>
+    <limit effort="54" lower="-3.14159" upper="3.14159" velocity="6.28"/>
     <origin xyz="0 0 0.571" rpy="0 1.570796 0"/>
   </joint>
   <link name="wrist_1_link">
@@ -246,7 +246,7 @@
     <parent link="wrist_1_link"/>
     <child link="wrist_2_link"/>
     <axis xyz="0 0 1"/>
-    <limit effort="54" lower="-6.28319" upper="6.28319" velocity="6.28"/>
+    <limit effort="54" lower="-3.14159" upper="3.14159" velocity="6.28"/>
     <origin xyz="0 0.135 0" rpy="0 0 0"/>
   </joint>
   <link name="wrist_2_link">
@@ -279,7 +279,7 @@
     <parent link="wrist_2_link"/>
     <child link="wrist_3_link"/>
     <axis xyz="0 1 0"/>
-    <limit effort="54" lower="-6.28319" upper="6.28319" velocity="6.28"/>
+    <limit effort="54" lower="-3.14159" upper="3.14159" velocity="6.28"/>
     <origin xyz="0 0 0.12" rpy="0 0 0"/>
   </joint>
   <link name="wrist_3_link">
