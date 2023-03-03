@@ -16,4 +16,4 @@ Robot Arm Control Library in Python
 * Add jacobian transpose method to solve inverse kinematics //2023.2.28
 * Add optimization method to solve inverse kinematics //2023.3.1
 * Fix the bug of optimization method //2023.3.3
-* 
+* Add inverse kinematics animation to show how the angle update //2023.3.3

@@ -122,8 +122,10 @@ class Robot:
         iteration=0
         
         error=np.linalg.norm(current_xyz-target_xyz)
-        
+        update_history=[]
         while error>threshold and iteration<max_iteration:
+            # print(f'iteration {iteration}: error:{error}, joint angle:{current_angle}')
+            update_history.append(current_angle.copy())
             J=self.Jac(current_angle)
             delta_xyz=target_xyz-current_xyz
             
@@ -135,6 +137,7 @@ class Robot:
         print(f'error:{error}')
         print(f'joint angle:{current_angle}')
         print(current_xyz)
+        return update_history
     
     ## A function use scipy.optimize to do the inverse kinematics
     def ik_scipy(self,current_angle,target_xyz):
@@ -146,12 +149,13 @@ class Robot:
         """
         ## Define the joint limits
         joint_limits=np.zeros((7,2))
-        
+        update_history=[]
         for i in range(7):
             joint_limits[i,0]=self.joint_list[i]['bounds'][0]
             joint_limits[i,1]=self.joint_list[i]['bounds'][1]
         # print(joint_limits)
         def objective_function(joint_angle):
+            update_history.append(joint_angle)
             current_xyz=self.fk_lambda(joint_angle)[:3,3]
             error=np.linalg.norm(current_xyz-target_xyz)
             return error
@@ -170,6 +174,8 @@ class Robot:
         print(f'error:{result.fun}')
         print(f'joint angle:{result.x}')
         print(f'current_xyz:{self.fk_lambda(result.x)[:3,3]}')
+        print(f'iteration:{len(update_history)}')
+        return update_history
     def rx_matrix(self,theta):
         """Rotation matrix around the X axis"""
         if self.symbolic:
