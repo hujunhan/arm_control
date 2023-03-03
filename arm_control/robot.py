@@ -146,9 +146,11 @@ class Robot:
         """
         ## Define the joint limits
         joint_limits=np.zeros((7,2))
+        
         for i in range(7):
             joint_limits[i,0]=self.joint_list[i]['bounds'][0]
-            joint_limits[i,1]=self.joint_list[i]['bounds'][0]
+            joint_limits[i,1]=self.joint_list[i]['bounds'][1]
+        # print(joint_limits)
         def objective_function(joint_angle):
             current_xyz=self.fk_lambda(joint_angle)[:3,3]
             error=np.linalg.norm(current_xyz-target_xyz)
@@ -161,9 +163,9 @@ class Robot:
             current_xyz=self.fk_lambda(joint_angle)[:3,3]
             error=current_xyz-target_xyz
             return error
-        cons = ({'type': 'eq', 'fun': equality_constraint},
+        cons = (
                {'type': 'ineq', 'fun': inequality_constraint})
-        result = minimize(objective_function, current_angle, method='Powell', constraints=cons)
+        result = minimize(objective_function, current_angle, method='SLSQP', constraints=cons)
         ## print the result of the optimization
         print(f'error:{result.fun}')
         print(f'joint angle:{result.x}')
@@ -230,7 +232,7 @@ if __name__ == '__main__':
     print(f'Number of joints: {len(urdf.joint_list)}')
     robot=Robot()
     robot.joint_list=urdf.joint_list
-    theta_list_current=np.asarray([0,np.pi/3,0,0,0,0,0])
+    theta_list_current=np.asarray([0,0.1,0.2,0.3,0.4,0,0])
     # theta_dict = {sym.symbols('theta'+str(i)):theta_list[i] for i in range(len(theta_list))}
     
     # theta_list=[np.pi/3,np.pi/3]
@@ -240,7 +242,7 @@ if __name__ == '__main__':
     # print(frame_history[-1].subs(theta_dict)[0:3,3])
     # print(f'current position: {frame_history[-1].subs(theta_dict)[0:3,3]}')
     print(f'current position: {robot.fk_lambda(theta_list_current)[0:3,3]}')
-    theta_list_target=np.asarray([0,np.pi/3,np.pi/6,0,0,0,0])
+    theta_list_target=np.asarray([0,0.12,0.23,0.34,0.38,0,0])
     # theta_dict = {sym.symbols('theta'+str(i)):theta_list[i] for i in range(len(theta_list))}
 
     print(f'target position: {robot.fk_lambda(theta_list_target)[0:3,3]}')
