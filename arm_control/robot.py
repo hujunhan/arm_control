@@ -140,7 +140,7 @@ class Robot:
         return update_history
     
     ## A function use scipy.optimize to do the inverse kinematics
-    def ik_scipy(self,current_angle,target_xyz):
+    def ik_scipy(self,current_angle,target_xyz,threshold=0.01,max_iteration=100):
         """ Use the scipy.optimize to do the inverse kinematics
 
         Args:
@@ -169,7 +169,7 @@ class Robot:
             return error
         cons = (
                {'type': 'ineq', 'fun': inequality_constraint})
-        result = minimize(objective_function, current_angle, method='SLSQP', constraints=cons)
+        result = minimize(objective_function, current_angle, method='SLSQP', constraints=cons, options={'disp': True,'maxiter':max_iteration})
         ## print the result of the optimization
         print(f'error:{result.fun}')
         print(f'joint angle:{result.x}')
