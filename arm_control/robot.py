@@ -134,9 +134,9 @@ class Robot:
             current_xyz=self.fk_lambda(current_angle)[:3,3]
             error=np.linalg.norm(current_xyz-target_xyz)
             iteration+=1
-        print(f'error:{error}')
-        print(f'joint angle:{current_angle}')
-        print(current_xyz)
+        # print(f'error:{error}')
+        # print(f'joint angle:{current_angle}')
+        # print(current_xyz)
         return update_history
     
     ## A function use scipy.optimize to do the inverse kinematics
