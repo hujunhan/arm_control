@@ -1,6 +1,11 @@
 # arm_control
 Robot Arm Control Library in Python
 
+## Profile tool
+
+python -m cProfile -o test.prof PyISP\hdr.py
+
+snakeviz test.prof
 
 ## Changelog
 
@@ -19,3 +24,4 @@ Robot Arm Control Library in Python
 * Add inverse kinematics animation to show how the angle update //2023.3.3
 * Better GUI for inverse kinematics animation, add gif demo //2023.3.3
 * Add go though via point demo in tool/ik_gui_shape.py //2023.3.4
+* Add jacobian inverse method to solve inverse kinematics //2023.3.4

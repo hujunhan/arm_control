@@ -25,7 +25,7 @@ theta_list_target=np.asarray([1,-1.2,-1.3,2.4,-1.5,1,0])
 print(f'current position: {robot.fk_lambda(theta_list_current)[0:3,3]}')
 print(f'target position: {robot.fk_lambda(theta_list_target)[0:3,3]}')
 
-angle_history=robot.ik_transpose(theta_list_current,robot.fk_lambda(theta_list_target)[0:3,3],max_iteration=1000)
+angle_history=robot.ik_jacobian(theta_list_current,robot.fk_lambda(theta_list_target)[0:3,3],max_iteration=1000,method='transpose')
 
 # print(f'angle_history: {angle_history}')
 

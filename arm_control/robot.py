@@ -106,8 +106,8 @@ class Robot:
         self.Jac=sym.lambdify([theta_list],Jac,'numpy')
         print(Jac.shape)
         
-    ## Use the jacobian transpose method to do the inverse kinematics
-    def ik_transpose(self,current_angle,target_xyz,threshold=0.01,max_iteration=100,alpha=0.1):
+     ## Use the jacobian inverse method to do the inverse kinematics
+    def ik_jacobian(self,current_angle,target_xyz,method='inverse',threshold=0.01,max_iteration=100,alpha=0.1):
         """_summary_
 
         Args:
@@ -128,8 +128,15 @@ class Robot:
             update_history.append(current_angle.copy())
             J=self.Jac(current_angle)
             delta_xyz=target_xyz-current_xyz
-            
-            angle_delta=np.dot(J.T,delta_xyz)
+            J_calc=None
+            if method=='inverse':
+                J_calc=np.linalg.pinv(J)
+            elif method=='transpose':
+                J_calc=J.T
+            else:
+                logger.error('method not supported, inverse is used')
+                J_calc=np.linalg.pinv(J)
+            angle_delta=np.dot(J_calc,delta_xyz)
             current_angle+=alpha*angle_delta
             current_xyz=self.fk_lambda(current_angle)[:3,3]
             error=np.linalg.norm(current_xyz-target_xyz)
@@ -138,7 +145,6 @@ class Robot:
         # print(f'joint angle:{current_angle}')
         # print(current_xyz)
         return update_history
-    
     ## A function use scipy.optimize to do the inverse kinematics
     def ik_scipy(self,current_angle,target_xyz,threshold=0.01,max_iteration=100):
         """ Use the scipy.optimize to do the inverse kinematics

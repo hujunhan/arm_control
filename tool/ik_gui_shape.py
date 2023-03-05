@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
 
-
+import time
 def get_line_points(start_point,end_point,n_points=100):
     t=np.linspace(0.01,1,n_points)
     via_points=[]
@@ -48,12 +48,19 @@ print(f'target position: {target_position}')
 via_points=get_circle_points(current_position,target_position)
 # print(f'via_points: {via_points}')
 angle_history=[theta_list_current]
+a=time.time()
+update_count=0
 for i in range(len(via_points)):
-    temp_history=robot.ik_transpose(angle_history[-1],via_points[i],max_iteration=1000)
+    temp_history=robot.ik_jacobian(angle_history[-1],via_points[i],max_iteration=1000)
     if len(temp_history)>0:
         angle_history.append(temp_history[-1])
+        update_count+=len(temp_history)
     # angle_history.append(temp_history[-1])
 # print(f'angle_history: {angle_history}')
+b=time.time()
+print(f'valid angle history: {len(angle_history)}')
+print(f'update count: {update_count}')
+print(f'time: {b-a}')
 
 
 ## Use the matplotlib to plot the robot
