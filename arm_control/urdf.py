@@ -7,10 +7,13 @@ import xml.etree.ElementTree as ET
 import warnings
 from loguru import logger
 import math
+
+
 class URDF:
     def __init__(self):
         self.joint_list = []
         pass
+
     @staticmethod
     def _find_next_joint(root, current_link, next_joint_name):
         """
@@ -34,7 +37,7 @@ class URDF:
         # Find the joint attached to the link
         has_next = False
         next_joint = None
-        search_by_name = (next_joint_name is not None)
+        search_by_name = next_joint_name is not None
         current_link_name = None
 
         if not search_by_name:
@@ -64,7 +67,11 @@ class URDF:
                         break
 
         if search_by_name and not has_next:
-            raise ValueError("Error: joint {} given but not found in the URDF".format(next_joint_name))
+            raise ValueError(
+                "Error: joint {} given but not found in the URDF".format(
+                    next_joint_name
+                )
+            )
 
         return has_next, next_joint
 
@@ -91,7 +98,7 @@ class URDF:
         has_next = False
         next_link = None
 
-        given_next_link = (next_link_name is not None)
+        given_next_link = next_link_name is not None
 
         # If no next link, find it automatically
         if next_link_name is None:
@@ -105,7 +112,9 @@ class URDF:
                 has_next = True
 
         if given_next_link and not has_next:
-            raise ValueError("Error: link {} given but not found in the URDF".format(next_link_name))
+            raise ValueError(
+                "Error: link {} given but not found in the URDF".format(next_link_name)
+            )
 
         return has_next, next_link
 
@@ -113,18 +122,24 @@ class URDF:
     def _find_parent_link(root, joint_name):
         """Find the first link which is the parent of the given joint"""
         try:
-            parent_link = next(joint.find("parent").attrib["link"]
-                            for joint in root.iter("joint")
-                            if joint.attrib["name"] == joint_name)
+            parent_link = next(
+                joint.find("parent").attrib["link"]
+                for joint in root.iter("joint")
+                if joint.attrib["name"] == joint_name
+            )
         except StopIteration:
             raise ValueError("Unable to locate the parent link")
 
         return parent_link
 
-
-    
-
-    def get_urdf_parameters(self,urdf_file, base_elements=None, last_link_vector=None, base_element_type="link", symbolic=True):
+    def get_urdf_parameters(
+        self,
+        urdf_file,
+        base_elements=None,
+        last_link_vector=None,
+        base_element_type="link",
+        symbolic=True,
+    ):
         """
         Returns translated parameters from the given URDF file.
         Parse the URDF joints into IKPY links, throw away the URDF links.
@@ -177,55 +192,83 @@ class URDF:
 
             if node_type == "link":
                 # Current element is a link, find child joint
-                (has_next, current_joint) = self._find_next_joint(root, current_link, next_element)
+                (has_next, current_joint) = self._find_next_joint(
+                    root, current_link, next_element
+                )
                 node_type = "joint"
                 if has_next:
                     joints.append(current_joint)
-                    logger.debug("Next element: joint {}".format(current_joint.attrib["name"]))
+                    logger.debug(
+                        "Next element: joint {}".format(current_joint.attrib["name"])
+                    )
 
             elif node_type == "joint":
                 # Current element is a joint, find child link
-                (has_next, current_link) = self._find_next_link(root, current_joint, next_element)
+                (has_next, current_link) = self._find_next_link(
+                    root, current_joint, next_element
+                )
                 node_type = "link"
                 if has_next:
                     links.append(current_link)
-                    logger.debug("Next element: link {}".format(current_link.attrib["name"]))
+                    logger.debug(
+                        "Next element: link {}".format(current_link.attrib["name"])
+                    )
 
         parameters = []
 
         # Save the joints in the good format
         for joint in joints:
-            joint_info={}
+            joint_info = {}
             origin_translation = [0, 0, 0]
             origin_orientation = [0, 0, 0]
             rotation = None
             translation = None
-            bounds = [float('-inf'), float('inf')]
+            bounds = [float("-inf"), float("inf")]
 
             origin = joint.find("origin")
             if origin is not None:
                 if "xyz" in origin.attrib.keys():
-                    origin_translation = [float(x) for x in origin.attrib["xyz"].split()]
+                    origin_translation = [
+                        float(x) for x in origin.attrib["xyz"].split()
+                    ]
                 if "rpy" in origin.attrib.keys():
-                    origin_orientation = [float(x) for x in origin.attrib["rpy"].split()]
+                    origin_orientation = [
+                        float(x) for x in origin.attrib["rpy"].split()
+                    ]
 
             joint_type = joint.attrib["type"]
-            
-            if joint_type not in ["revolute", "prismatic", "fixed",'continuous','planar','floating','fixed']:
+
+            if joint_type not in [
+                "revolute",
+                "prismatic",
+                "fixed",
+                "continuous",
+                "planar",
+                "floating",
+                "fixed",
+            ]:
                 raise ValueError("Unknown joint type: {}".format(joint_type))
 
             axis = joint.find("axis")
             if axis is not None:
-                if joint_type == "revolute" or joint_type == 'continuous':
+                if joint_type == "revolute" or joint_type == "continuous":
                     rotation = [float(x) for x in axis.attrib["xyz"].split()]
                     translation = None
                 elif joint_type == "prismatic":
                     rotation = None
                     translation = [float(x) for x in axis.attrib["xyz"].split()]
                 elif joint_type == "fixed":
-                    warnings.warn("Joint {} is of type: fixed, but has an 'axis' attribute defined. This is not in the URDF spec and thus this axis is ignored".format(joint.attrib["name"]))
+                    warnings.warn(
+                        "Joint {} is of type: fixed, but has an 'axis' attribute defined. This is not in the URDF spec and thus this axis is ignored".format(
+                            joint.attrib["name"]
+                        )
+                    )
                 else:
-                    raise ValueError("Unknown joint type with an axis: {}, {}".format(joint_type, axis))
+                    raise ValueError(
+                        "Unknown joint type with an axis: {}, {}".format(
+                            joint_type, axis
+                        )
+                    )
 
             limit = joint.find("limit")
             if limit is not None:
@@ -233,23 +276,20 @@ class URDF:
                     bounds[0] = float(limit.attrib["lower"])
                 if "upper" in limit.attrib:
                     bounds[1] = float(limit.attrib["upper"])
-            
-            joint_info["name"]=joint.attrib["name"]
-            joint_info["joint_type"]=joint_type
-            
-            joint_info["origin_translation"]=origin_translation
-            joint_info["origin_orientation"]=origin_orientation
-            joint_info["rotation"]=rotation
-            joint_info["translation"]=translation
-            joint_info["bounds"]=bounds
 
-            
-            ## add info to list            
-            
-            
+            joint_info["name"] = joint.attrib["name"]
+            joint_info["joint_type"] = joint_type
+
+            joint_info["origin_translation"] = origin_translation
+            joint_info["origin_orientation"] = origin_orientation
+            joint_info["rotation"] = rotation
+            joint_info["translation"] = translation
+            joint_info["bounds"] = bounds
+
+            ## add info to list
+
             self.joint_list.append(joint_info)
             # print(frame_matrix)
-            
 
         # Add last_link_vector to parameters
         if last_link_vector is not None:
@@ -258,9 +298,10 @@ class URDF:
 
         return parameters
 
-if __name__ == '__main__':
-    file_path='./urdf/ur10e.urdf'
-    urdf=URDF()
+
+if __name__ == "__main__":
+    file_path = "./urdf/ur10e.urdf"
+    urdf = URDF()
     urdf.get_urdf_parameters(file_path)
     for joint in urdf.joint_list:
         print(joint)
