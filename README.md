@@ -1,4 +1,5 @@
 # arm_control
+
 Robot Arm Control Library in Python
 
 ## Profile tool
@@ -26,3 +27,5 @@ snakeviz test.prof
 * Add go though via point demo in tool/ik_gui_shape.py //2023.3.4
 * Add jacobian inverse method to solve inverse kinematics //2023.3.4
 * add some new robot urdf model //2023.3.6
+* add collision detection (Not tested) //2023.3.29
+  
