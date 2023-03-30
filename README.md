@@ -28,4 +28,5 @@ snakeviz test.prof
 * Add jacobian inverse method to solve inverse kinematics //2023.3.4
 * add some new robot urdf model //2023.3.6
 * add collision detection (Not tested) //2023.3.29
+* test collision detection using naive method, error rate 0.0002 //2023.3.29
   
