@@ -29,4 +29,5 @@ snakeviz test.prof
 * add some new robot urdf model //2023.3.6
 * add collision detection (Not tested) //2023.3.29
 * test collision detection using naive method, error rate 0.0002 //2023.3.29
+* Add mesh visualization for the URDF, example UR10 arm //2023.4.12
   

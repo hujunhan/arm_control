@@ -7,11 +7,17 @@ import xml.etree.ElementTree as ET
 import warnings
 from loguru import logger
 import math
+import pathlib
 
 
 class URDF:
     def __init__(self):
-        self.joint_list = []
+        self.joint_list = (
+            []
+        )  # List of joints, contains 'name', 'joint_type', 'origin_translation', 'origin_orientation', 'rotation', 'translation', 'bounds'
+        self.link_list = (
+            []
+        )  # List of links, contains 'name', 'collision_mesh_path', 'visual_mesh_path'
         pass
 
     @staticmethod
@@ -216,6 +222,34 @@ class URDF:
 
         parameters = []
 
+        # Save the links in the good format
+        for link in links:
+            link_info = {}
+            link_info["name"] = link.attrib["name"]
+            if link.find("visual") is not None:
+                mesh = link.find("visual").find("geometry").find("mesh")
+                if mesh is not None:
+                    relative_mesh_filename = mesh.attrib["filename"]
+                    urdf_path = pathlib.Path(urdf_file)
+                    absolute_mesh_filename = (
+                        urdf_path.parent / relative_mesh_filename
+                    ).absolute()
+                    link_info["visual_mesh_path"] = absolute_mesh_filename
+                else:
+                    logger.warning(f'No mesh found for link "{link.attrib["name"]}"')
+            if link.find("collision") is not None:
+                mesh = link.find("collision").find("geometry").find("mesh")
+                if mesh is not None:
+                    relative_mesh_filename = mesh.attrib["filename"]
+                    urdf_path = pathlib.Path(urdf_file)
+                    absolute_mesh_filename = (
+                        urdf_path.parent / relative_mesh_filename
+                    ).absolute()
+                    link_info["collision_mesh_path"] = absolute_mesh_filename
+                else:
+                    logger.warning(f'No mesh found for link "{link.attrib["name"]}"')
+            self.link_list.append(link_info)
+
         # Save the joints in the good format
         for joint in joints:
             joint_info = {}
@@ -293,15 +327,15 @@ class URDF:
 
         # Add last_link_vector to parameters
         if last_link_vector is not None:
-
             pass
 
         return parameters
 
 
 if __name__ == "__main__":
-    file_path = "./urdf/ur10e.urdf"
+    file_path = "./urdf/ur10.urdf"
     urdf = URDF()
     urdf.get_urdf_parameters(file_path)
     for joint in urdf.joint_list:
-        print(joint)
+        logger.info(joint)
+        # pass

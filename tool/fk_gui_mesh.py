@@ -3,6 +3,7 @@ from arm_control.robot import Robot
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
+import trimesh
 
 import time
 
@@ -13,7 +14,10 @@ urdf.get_urdf_parameters(file_path)
 for joint in urdf.joint_list:
     print(f'name of joint: {joint["name"]}')
 print(f"Number of joints: {len(urdf.joint_list)}")
-
+link_list = urdf.link_list
+for link in link_list:
+    print(f'name of link: {link["name"]}')
+print(f"Number of links: {len(link_list)}")
 ## Get the robot for forward kinematics function
 robot = Robot()
 robot.joint_list = urdf.joint_list
@@ -26,6 +30,15 @@ fig = plt.figure()
 N = len(theta_list)
 fig.subplots_adjust(left=0.1, right=0.7, bottom=0.1, top=1.0)
 ax = fig.add_subplot(projection="3d")
+
+
+# mesh = trimesh.load(link_list[1]["collision_mesh_path"], force="mesh")
+# ax.plot_trisurf(
+#     mesh.vertices[:, 0],
+#     mesh.vertices[:, 1],
+#     triangles=mesh.faces,
+#     Z=mesh.vertices[:, 2],
+# )
 
 
 def update(val):
@@ -42,6 +55,24 @@ def update(val):
         z.append(frame_history[i][2, 3])
     for i in range(len(x) - 1):
         ax.plot([x[i], x[i + 1]], [y[i], y[i + 1]], [z[i], z[i + 1]])
+
+    ## plot the mesh of the robot
+    mesh = trimesh.load(link_list[0]["collision_mesh_path"], force="mesh")
+    ax.plot_trisurf(
+        mesh.vertices[:, 0],
+        mesh.vertices[:, 1],
+        triangles=mesh.faces,
+        Z=mesh.vertices[:, 2],
+    )
+    for i in range(1, len(frame_history)):
+        mesh = trimesh.load(link_list[i]["collision_mesh_path"], force="mesh")
+        mesh.apply_transform(frame_history[i - 1])
+        ax.plot_trisurf(
+            mesh.vertices[:, 0],
+            mesh.vertices[:, 1],
+            triangles=mesh.faces,
+            Z=mesh.vertices[:, 2],
+        )
     ax.set_aspect("equal")
     ax.set_xlim(-1, 1)
     ax.set_ylim(-1, 1)
