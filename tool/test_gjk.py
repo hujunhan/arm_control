@@ -6,11 +6,14 @@ from arm_control.collision import GJK
 from loguru import logger as log
 import pickle
 
+import time
+
 log.remove()
 TEST_NUM = 10000
 error_count = 0
 
 error_collision = []
+start = time.time()
 for i in range(TEST_NUM):
     # generate two random rectangular in -1 to 1 (x, y, z)
 
@@ -44,7 +47,9 @@ for i in range(TEST_NUM):
         print(f"{i}: {result} {overlap}")
         error_collision.append([rect_a, rect_b, overlap])
         error_count += 1
-
+end = time.time()
 # save the error cases
 pickle.dump(error_collision, open("doc/error_collision.pkl", "wb"))
 print(f"error rate: {error_count / TEST_NUM}")
+print(f"total time: {end - start}")
+print(f"average time: {(end - start) / TEST_NUM}")

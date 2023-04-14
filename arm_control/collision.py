@@ -2,6 +2,8 @@
 import numpy as np
 from loguru import logger as log
 
+log.remove()
+
 
 class GJK:
     def __init__(self) -> None:
@@ -77,7 +79,7 @@ class GJK:
             # 6. update the direction
             direction = self.get_new_direction()
             log.debug(f"new direction: {direction}")
-        print("max iterations reached")
+        log.debug("max iterations reached")
         return False
 
     def get_new_direction(self):

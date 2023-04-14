@@ -4,8 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
 import trimesh
-
 import time
+from arm_control.collision import GJK
 
 ## Read file
 file_path = "./urdf/uR10.urdf"
@@ -31,14 +31,18 @@ N = len(theta_list)
 fig.subplots_adjust(left=0.1, right=0.7, bottom=0.1, top=1.0)
 ax = fig.add_subplot(projection="3d")
 
-
-# mesh = trimesh.load(link_list[1]["collision_mesh_path"], force="mesh")
+# mesh = o3d.io.read_triangle_mesh(str(link_list[1]["collision_mesh_path"]))
+mesh = trimesh.load(link_list[1]["collision_mesh_path"], force="mesh")
+sample_points = mesh.sample(1000)
+# ax.scatter(sample_points[:, 0], sample_points[:, 1], sample_points[:, 2])
+# plt.show()
 # ax.plot_trisurf(
 #     mesh.vertices[:, 0],
 #     mesh.vertices[:, 1],
 #     triangles=mesh.faces,
 #     Z=mesh.vertices[:, 2],
 # )
+# plt.show()
 
 
 def update(val):
@@ -46,16 +50,7 @@ def update(val):
     frame_history = robot.forward_kine(theta_list)
 
     ax.cla()
-    x = [0]
-    y = [0]
-    z = [0]
-    for i in range(len(frame_history)):
-        x.append(frame_history[i][0, 3])
-        y.append(frame_history[i][1, 3])
-        z.append(frame_history[i][2, 3])
-    for i in range(len(x) - 1):
-        ax.plot([x[i], x[i + 1]], [y[i], y[i + 1]], [z[i], z[i + 1]])
-
+    collison_object_list = []
     ## plot the mesh of the robot
     mesh = trimesh.load(link_list[0]["collision_mesh_path"], force="mesh")
     ax.plot_trisurf(
@@ -64,19 +59,40 @@ def update(val):
         triangles=mesh.faces,
         Z=mesh.vertices[:, 2],
     )
+    collison_object_list.append(mesh.sample(1000))
     for i in range(1, len(frame_history)):
         mesh = trimesh.load(link_list[i]["collision_mesh_path"], force="mesh")
         mesh.apply_transform(frame_history[i - 1])
+        sample_points = mesh.sample(1000)
+        collison_object_list.append(sample_points)
         ax.plot_trisurf(
             mesh.vertices[:, 0],
             mesh.vertices[:, 1],
             triangles=mesh.faces,
             Z=mesh.vertices[:, 2],
         )
+    result = detect_collision(collison_object_list)
+    if result is not False:
+        ax.title.set_text(f"Collision between {result[0]} and {result[1]}")
+    else:
+        ax.title.set_text("No collision")
     ax.set_aspect("equal")
     ax.set_xlim(-1, 1)
     ax.set_ylim(-1, 1)
     ax.set_zlim(-1, 1)
+
+
+def detect_collision(collison_object_list):
+    for i in range(len(collison_object_list) - 1):
+        for j in range(i + 2, len(collison_object_list)):
+            detector = GJK()
+            result = detector.super_check(
+                collison_object_list[i], collison_object_list[j]
+            )
+            if result:
+                print(f"collision between {i} and {j}")
+                return [i, j]
+    return False
 
 
 ## Add sliders
@@ -92,17 +108,26 @@ for i in range(N):
 ## Plot the robot in the initial position
 a = time.time()
 frame_history = robot.forward_kine(theta_list)
-x = [0]
-y = [0]
-z = [0]
-for i in range(len(frame_history)):
-    x.append(frame_history[i][0, 3])
-    y.append(frame_history[i][1, 3])
-    z.append(frame_history[i][2, 3])
 
 
-for i in range(len(x) - 1):
-    ax.plot([x[i], x[i + 1]], [y[i], y[i + 1]], [z[i], z[i + 1]])
+## plot the mesh of the robot
+mesh = trimesh.load(link_list[0]["collision_mesh_path"], force="mesh")
+ax.plot_trisurf(
+    mesh.vertices[:, 0],
+    mesh.vertices[:, 1],
+    triangles=mesh.faces,
+    Z=mesh.vertices[:, 2],
+)
+for i in range(1, len(frame_history)):
+    mesh = trimesh.load(link_list[i]["collision_mesh_path"], force="mesh")
+    mesh.apply_transform(frame_history[i - 1])
+    ax.plot_trisurf(
+        mesh.vertices[:, 0],
+        mesh.vertices[:, 1],
+        triangles=mesh.faces,
+        Z=mesh.vertices[:, 2],
+    )
+
 ax.set_aspect("equal")
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
