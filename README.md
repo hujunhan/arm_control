@@ -31,4 +31,5 @@ snakeviz test.prof
 * test collision detection using naive method, error rate 0.0002 //2023.3.29
 * Add mesh visualization for the URDF, example UR10 arm //2023.4.12
 * Add self-collision detection for the URDF, example UR10 arm //2023.4.13
+* Add GJK algorithm test for UR10 arm, compared with FCL, error rate 0.15 //2023.4.14
   
