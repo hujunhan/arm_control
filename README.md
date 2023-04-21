@@ -32,4 +32,5 @@ snakeviz test.prof
 * Add mesh visualization for the URDF, example UR10 arm //2023.4.12
 * Add self-collision detection for the URDF, example UR10 arm //2023.4.13
 * Add GJK algorithm test for UR10 arm, compared with FCL, error rate 0.15 //2023.4.14
+* Add ZLG CAN bus driver for the UR10 arm //2023.4.20
   
