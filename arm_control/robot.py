@@ -121,14 +121,14 @@ class Robot:
         # print(f'All frame matrix:\n{all_frame_matrix}')
         # all_frame_matrix = all_frame_matrix.subs(theta_dict)
         self.fk_lambda = sym.lambdify(
-            [sym.symbols("theta0:7")], all_frame_matrix, "numpy"
+            [sym.symbols(f"theta0:{len(self.joint_list)}")], all_frame_matrix, "numpy"
         )
         return frame_history
 
     ## calculate the jacobian matrix
     # only care the final position of the end effector
     def jacobian_xyz(self, T):
-        theta_list = sym.symbols("theta0:7")
+        theta_list = sym.symbols(f"theta0:{len(self.joint_list)}")
         Jac = T[:3, 3].jacobian(theta_list)
         self.Jac = sym.lambdify([theta_list], Jac, "numpy")
         print(Jac.shape)
@@ -190,12 +190,14 @@ class Robot:
             target_xyz (_type_): _description_
         """
         ## Define the joint limits
-        joint_limits = np.zeros((7, 2))
+        n = len(self.joint_list)
+        joint_limits = np.zeros((n, 2))
         update_history = []
-        for i in range(7):
+        for i in range(n):
             joint_limits[i, 0] = self.joint_list[i]["bounds"][0]
             joint_limits[i, 1] = self.joint_list[i]["bounds"][1]
-        # print(joint_limits)
+        finite = np.all(np.isfinite(joint_limits), axis=1)
+
         def objective_function(joint_angle):
             update_history.append(joint_angle)
             current_xyz = self.fk_lambda(joint_angle)[:3, 3]
@@ -203,10 +205,11 @@ class Robot:
             return error
 
         def inequality_constraint(joint_angle):
+            # only joints with finite limits (fixed joints have +-inf bounds)
             ineq = np.concatenate(
                 (
-                    joint_angle[:6] - joint_limits[:6, 0],
-                    joint_limits[:6, 1] - joint_angle[:6],
+                    joint_angle[finite] - joint_limits[finite, 0],
+                    joint_limits[finite, 1] - joint_angle[finite],
                 )
             )
             # print(ineq.shape)

@@ -34,3 +34,4 @@ snakeviz test.prof
 * Add GJK algorithm test for UR10 arm, compared with FCL, error rate 0.15 //2023.4.14
 * Add ZLG CAN bus driver for the UR10 arm //2023.4.20
   
+* 2026: packaged (pyproject), joint count no longer hard-coded to 7 (works for the 6-joint SO-101 chain); the 2023 version is tagged v2023 //2026.11.6
